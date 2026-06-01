@@ -3,14 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#b8955a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="الكرامة">
+<!-- ══ PWA: Manifest مدمج ══ -->
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/karama/service-worker.js');
+(function() {
+  const iconSVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%2314110e'/><circle cx='96' cy='96' r='80' fill='none' stroke='%23b8955a' stroke-width='3'/><text x='96' y='115' font-family='Georgia,serif' font-size='72' fill='%23b8955a' text-anchor='middle'>&#1603;</text></svg>`;
+  const icon192 = 'data:image/svg+xml,' + iconSVG;
+  const manifest = {
+    name: 'جمعية الكرامة',
+    short_name: 'الكرامة',
+    description: 'جمعية الكرامة للادخار التعاوني',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#14110e',
+    theme_color: '#b8955a',
+    dir: 'rtl',
+    lang: 'ar',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/svg+xml' },
+      { src: icon192, sizes: '512x512', type: 'image/svg+xml' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = url;
+  document.head.appendChild(link);
+})();
+</script>
+<meta name=theme-color content=#b8955a>
+<meta name=mobile-web-app-capable content=yes>
+<meta name=apple-mobile-web-app-capable content=yes>
+<meta name=apple-mobile-web-app-status-bar-style content=black-translucent>
+<meta name=apple-mobile-web-app-title content=الكرامة>
+<!-- ══ PWA: Service Worker مدمج ══ -->
+<script>
+if ('serviceWorker' in navigator) {
+  const swCode = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => clients.claim());
+self.addEventListener('fetch', e => {
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});
+`;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+</script>
+<!-- ══ PWA: زر إضافة للشاشة الرئيسية ══ -->
+<script>
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.style.display = 'none';
+});
+function triggerPWAInstall() {
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.style.display = 'none';
   }
+}
+function dismissPWABar() {
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.style.display = 'none';
+  sessionStorage.setItem('pwa-dismissed', '1');
+}
 </script>
 <title>جمعية الكرامة — الصفحة الرئيسية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -471,6 +536,21 @@ body{font-family:'Tajawal',Tahoma,'Arial Unicode MS',Arial,sans-serif;background
 </style>
 </head>
 <body>
+
+<!-- ══ شريط تثبيت التطبيق (Android/Chrome) ══ -->
+<div id="pwa-install-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#14110e;border-top:2px solid #b8955a;padding:14px 18px;align-items:center;justify-content:space-between;gap:12px;font-family:'Tajawal',Tahoma,Arial,sans-serif;direction:rtl;box-shadow:0 -4px 24px rgba(0,0,0,.4)">
+  <div style="display:flex;align-items:center;gap:12px;flex:1">
+    <div style="width:44px;height:44px;border-radius:12px;background:rgba(184,149,90,.15);border:1.5px solid #b8955a;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:22px;color:#b8955a;flex-shrink:0">ك</div>
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#fff">أضف التطبيق للشاشة الرئيسية</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">وصول سريع بدون متصفح</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button onclick="triggerPWAInstall()" style="padding:9px 18px;background:#b8955a;color:#fff;border:none;border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer">تثبيت</button>
+    <button onclick="dismissPWABar()" style="padding:9px 12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:13px;cursor:pointer">✕</button>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════
      SCREEN WELCOME: شاشة الترحيب والشروط
@@ -964,6 +1044,27 @@ body{font-family:'Tajawal',Tahoma,'Arial Unicode MS',Arial,sans-serif;background
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">المسمى الوظيفي</label>
         <input id="reg-job" type="text" placeholder="معلمة / موظفة ..." style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
+
+        <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:8px">نوع السهم المطلوب</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px" id="share-type-group">
+          <label id="share-full-lbl" onclick="selectShareType('full')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border:2px solid var(--gold);border-radius:12px;cursor:pointer;background:rgba(184,149,90,.08);transition:all .2s;text-align:center">
+            <input type="radio" name="reg-share-type" id="share-full" value="full" style="display:none" checked>
+            <span style="font-size:24px">⭐</span>
+            <span style="font-size:14px;font-weight:700;color:var(--ink)">سهم كامل</span>
+            <span style="font-size:12px;color:var(--gold-d);font-weight:600">1,000 دينار / شهرياً</span>
+            <span id="share-full-check" style="font-size:11px;color:var(--green);font-weight:700">✓ محدد</span>
+          </label>
+          <label id="share-half-lbl" onclick="selectShareType('half')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border:2px solid var(--border);border-radius:12px;cursor:pointer;background:#faf8f4;transition:all .2s;text-align:center">
+            <input type="radio" name="reg-share-type" id="share-half" value="half" style="display:none">
+            <span style="font-size:24px">½</span>
+            <span style="font-size:14px;font-weight:700;color:var(--ink)">نصف سهم</span>
+            <span style="font-size:12px;color:var(--ink3);font-weight:600">500 دينار / شهرياً</span>
+            <span id="share-half-check" style="font-size:11px;color:transparent;font-weight:700">✓ محدد</span>
+          </label>
+        </div>
+        <div id="half-share-notice" style="display:none;font-size:12px;color:var(--gold-d);background:rgba(184,149,90,.08);border:1px solid rgba(184,149,90,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.7">
+          ℹ️ عند اختيار نصف سهم، سيتم دمج طلبك مع مشترك آخر بنصف سهم لتكوين سهم كامل. سيظهر اسمك مع الشريك في خانة السهم الموحّد.
+        </div>
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">رفع شهادة الراتب (PDF أو صورة)</label>
         <label style="display:flex;align-items:center;gap:10px;padding:11px 14px;border:1.5px dashed var(--border);border-radius:10px;cursor:pointer;background:#faf8f4;margin-bottom:20px">
@@ -1676,14 +1777,16 @@ function loadMemberDashboard(member) {
   const nameBanner = document.getElementById('dash-member-name-banner');
   if (nameBanner) nameBanner.textContent = member.name || '—';
   const dashStatusSub = document.getElementById('dash-status-sub');
-  if (dashStatusSub) dashStatusSub.textContent = 'عضو رقم ' + memberSerial + ' — تاريخ الانضمام: ' + (member.joinDate || new Date().toLocaleDateString('ar-LY'));
+  const shareLabel = member.shareType === 'half' ? 'نصف سهم (500 د.ل/شهر)' : 'سهم كامل (1,000 د.ل/شهر)';
+  if (dashStatusSub) dashStatusSub.textContent = 'عضو رقم ' + memberSerial + ' — ' + shareLabel + ' — الانضمام: ' + (member.joinDate || new Date().toLocaleDateString('ar-LY'));
   const paid = member.paidMonths || 0;
-  const totalPaid = paid * 1000;
-  const remaining = (50 - paid) * 1000;
+  const monthlyAmount = member.shareType === 'half' ? 500 : 1000;
+  const totalPaid = paid * monthlyAmount;
+  const remaining = (50 - paid) * monthlyAmount;
   const pct = Math.round((paid / 50) * 100);
 
   document.getElementById('total-paid-val').textContent = totalPaid > 0 ? totalPaid.toLocaleString('ar-LY') : '0';
-  document.getElementById('total-paid-sub').textContent = 'دينار ليبي — ' + paid + ' أشهر';
+  document.getElementById('total-paid-sub').textContent = 'دينار ليبي — ' + paid + ' أشهر (' + monthlyAmount.toLocaleString('ar-LY') + ' د.ل/شهر)';
   document.getElementById('total-remaining-val').textContent = remaining.toLocaleString('ar-LY');
   document.getElementById('total-remaining-sub').textContent = 'دينار ليبي — ' + (50 - paid) + ' شهراً';
   document.getElementById('progress-pct').textContent = pct + '٪';
@@ -1694,12 +1797,13 @@ function loadMemberDashboard(member) {
   const rowsContainer = document.getElementById('pay-rows-dynamic');
   if (rowsContainer) {
     if (member.payments && member.payments.length > 0) {
+      const mAmt = member.shareType === 'half' ? 500 : 1000;
       rowsContainer.innerHTML = member.payments.map((p, i) => `
         <div class="pay-row">
           <div class="month">${p.month}</div>
-          <div>1,000 د.ل</div>
+          <div>${mAmt.toLocaleString('ar-LY')} د.ل</div>
           <div><span class="badge badge-paid">مؤكد</span></div>
-          <div><button onclick="showPayReceipt('${p.month}','1,000',${i+1},${(i+1)*1000},${50000-(i+1)*1000})" style="background:none;border:none;cursor:pointer;font-size:16px" title="عرض الإيصال">📎</button></div>
+          <div><button onclick="showPayReceipt('${p.month}','${mAmt}',${i+1},${(i+1)*mAmt},${50*mAmt-(i+1)*mAmt})" style="background:none;border:none;cursor:pointer;font-size:16px" title="عرض الإيصال">📎</button></div>
         </div>`).join('');
     } else {
       rowsContainer.innerHTML = '<div class="pay-row"><div style="grid-column:1/-1;text-align:center;color:var(--ink3);font-size:13px;padding:20px">لا توجد دفعات مسجلة بعد</div></div>';
@@ -1953,19 +2057,28 @@ function showAdminTab(tab) {
   }
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
-  if (tab === 'members') { renderAdminMembers(); renderLateAlerts(); populateLotteryDropdown(); }
+  if (tab === 'members') {
+    renderAdminMembers(); renderLateAlerts(); populateLotteryDropdown();
+    // إخفاء الإيصال الذكي عند الانتقال لتبويب الأعضاء
+    const sec = document.getElementById('smart-receipt-section');
+    if (sec) sec.style.display = 'none';
+  }
   if (tab === 'requests') { renderAdminRequests(); renderBankReceipts(); }
   const archiveWrapper = document.getElementById('payments-archive-wrapper');
   if (archiveWrapper) archiveWrapper.style.display = tab === 'payments' ? 'block' : 'none';
   if (tab === 'payments') {
     renderPendingReceipts();
     renderPaymentsArchive();
-    const sec = document.getElementById('smart-receipt-section');
-    if (sec) sec.style.display = 'none';
-    ['si-name','si-month-num','si-phone'].forEach(function(id) {
-      const el = document.getElementById(id); if (el) el.value = '';
-    });
-    calcSmartReceipt();
+    // لا نمسح الحقول إذا تم الفتح من زر إيصال في قائمة الأعضاء
+    if (!window._skipClearReceipt) {
+      const sec = document.getElementById('smart-receipt-section');
+      if (sec) sec.style.display = 'none';
+      ['si-name','si-month-num','si-phone'].forEach(function(id) {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      calcSmartReceipt();
+    }
+    window._skipClearReceipt = false; // إعادة الضبط بعد الاستخدام
   }
   if (tab === 'settings') { updateWhatsappDisplay(); }
 }
@@ -1995,6 +2108,7 @@ function approveRequest(btn, idx) {
       workplace: req.workplace || '—',
       job: req.job || '—',
       joinDate: new Date().toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'}),
+      shareType: req.shareType || 'full',
       paidMonths: 0,
       paymentStatus: 'في الانتظار',
       payments: [],
@@ -2031,9 +2145,39 @@ ${siteUrl}
 
 مرحباً بكِ في عائلة الكرامة 💛`;
 
-  setTimeout(() => {
-    window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
-  }, 400);
+  // عرض تأكيد القبول مع زر واتساب اختياري (بدلاً من الفتح التلقائي)
+  const waLink = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+
+  // إزالة أي إشعار سابق
+  const oldNotif = document.getElementById('approve-notif-banner');
+  if (oldNotif) oldNotif.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'approve-notif-banner';
+  banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border:1.5px solid var(--gold);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:18px 22px;max-width:420px;width:calc(100% - 40px);font-family:Tajawal,Tahoma,Arial,sans-serif;direction:rtl;animation:fadeUp .3s ease';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <span style="font-size:28px">✅</span>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px">تم قبول العضو بنجاح</div>
+        <div style="font-size:12px;color:var(--ink3);margin-bottom:12px">هل تريد إرسال رسالة الترحيب وكلمة المرور لـ <strong>${req.name}</strong> عبر واتساب؟</div>
+        <div style="display:flex;gap:8px">
+          <a href="${waLink}" target="_blank" onclick="document.getElementById('approve-notif-banner').remove()" style="flex:1;padding:10px;background:#25d366;color:#fff;border:none;border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block">
+            💬 إرسال عبر واتساب
+          </a>
+          <button onclick="document.getElementById('approve-notif-banner').remove()" style="padding:10px 16px;background:var(--warm);color:var(--ink2);border:1px solid var(--border);border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:13px;cursor:pointer">
+            تخطي
+          </button>
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;background:var(--warm);border-radius:8px;font-size:11px;color:var(--ink3)">
+          🔑 كلمة المرور المؤقتة: <strong style="color:var(--ink);letter-spacing:.08em">${tempPass}</strong>
+          <button onclick="navigator.clipboard.writeText('${tempPass}').then(()=>{this.textContent='✅ تم النسخ'})" style="margin-right:8px;padding:2px 8px;background:var(--gold);color:#fff;border:none;border-radius:5px;font-size:10px;cursor:pointer;font-family:Tajawal,Tahoma,Arial,sans-serif">نسخ</button>
+        </div>
+      </div>
+      <button onclick="document.getElementById('approve-notif-banner').remove()" style="background:none;border:none;color:var(--ink3);font-size:18px;cursor:pointer;line-height:1;flex-shrink:0">✕</button>
+    </div>`;
+  document.body.appendChild(banner);
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 15000);
 
   // Refresh members tab
   renderAdminMembers();
@@ -2144,8 +2288,12 @@ function submitRegistration() {
   phoneEl.style.borderColor = '';
   phoneEl.style.boxShadow = '';
 
-  // حفظ الطلب مع شهادة الراتب
-  const req = { name, phone, workplace, job, time: new Date().toLocaleString('ar-LY', {timeZone:'Africa/Tripoli'}), salaryCert: regSalaryCertData || null };
+  // نوع السهم
+  const shareTypeEl = document.querySelector('input[name="reg-share-type"]:checked');
+  const shareType = shareTypeEl ? shareTypeEl.value : 'full';
+
+  // حفظ الطلب مع شهادة الراتب ونوع السهم
+  const req = { name, phone, workplace, job, shareType, time: new Date().toLocaleString('ar-LY', {timeZone:'Africa/Tripoli'}), salaryCert: regSalaryCertData || null };
   saved.unshift(req);
   localStorage.setItem('karama_requests', JSON.stringify(saved));
   renderAdminRequests();
@@ -2182,6 +2330,7 @@ function renderAdminRequests() {
       <div style="flex:1">
         <div style="font-weight:700;color:var(--ink)">${r.name}</div>
         <div style="color:var(--ink3);font-size:12px">${r.phone} — ${r.workplace||'—'} — ${r.job||'—'}</div>
+        <div style="margin-top:4px"><span style="font-size:11px;background:${r.shareType==='half'?'rgba(184,149,90,.1)':'rgba(26,107,74,.08)'};color:${r.shareType==='half'?'var(--gold-d)':'var(--green)'};padding:2px 10px;border-radius:10px;font-weight:700">${r.shareType==='half'?'½ نصف سهم — 500 دينار':'⭐ سهم كامل — 1,000 دينار'}</span></div>
         <div style="color:var(--ink3);font-size:11px;margin-top:2px">🕐 ${r.time}</div>
         <div style="margin-top:6px">${certBtn}</div>
       </div>
@@ -2479,51 +2628,254 @@ function renderAdminMembers() {
     container.innerHTML = '<div style="text-align:center;padding:28px;color:var(--ink3);font-size:13px">لا يوجد أعضاء نشطون بعد — قبول طلب لإضافة عضو</div>';
     return;
   }
-  container.innerHTML = members.map((m, i) => {
+
+  const { fullShares, mergedPairs, unmatchedHalves } = getMergedShares(members);
+  let rows = '';
+
+  // الأسهم الكاملة (مشترك واحد)
+  fullShares.forEach((m, _) => {
+    const i = members.indexOf(m);
     const status = m.paymentStatus || 'في الانتظار';
     const statusColor = status === 'مؤكد' ? 'rgba(26,107,74,.1)' : status === 'متأخر' ? 'rgba(184,50,50,.08)' : 'rgba(184,149,90,.12)';
     const statusTextColor = status === 'مؤكد' ? 'var(--green)' : status === 'متأخر' ? 'var(--red)' : 'var(--gold-d)';
-    return `
+    rows += `
     <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:0;padding:12px 16px;border-top:1px solid var(--border);font-size:13px;align-items:center">
       <div>
         <div style="font-weight:600">${m.name}</div>
         <div style="font-size:11px;color:var(--ink3)">${m.workplace||''}</div>
+        <span style="font-size:10px;background:rgba(184,149,90,.12);color:var(--gold-d);padding:2px 8px;border-radius:10px;font-weight:600">⭐ سهم كامل</span>
       </div>
       <div style="color:var(--ink3)">${m.phone}</div>
       <div><span style="background:${statusColor};color:${statusTextColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${status}</span></div>
       <div style="display:flex;gap:4px;flex-wrap:wrap">
-        <button onclick="openSmartReceiptForMember('${m.name}',${m.paidMonths||0})" style="padding:4px 8px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="عرض إيصال سداد ذكي">📥 إيصال</button>
-        <button onclick="viewSalaryCert('${m.name}',${i})" style="padding:4px 8px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="عرض شهادة الراتب">📄 راتب</button>
+        <button onclick="openSmartReceiptForMember('${m.name}',${m.paidMonths||0})" style="padding:4px 8px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="إيصال سداد">📥 إيصال</button>
+        <button onclick="viewSalaryCert('${m.name}',${i})" style="padding:4px 8px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="شهادة الراتب">📄 راتب</button>
         <button onclick="showMemberPayments('${m.name}',${i})" style="padding:4px 8px;background:rgba(184,149,90,.15);color:var(--gold-d);border:1px solid var(--border);border-radius:6px;font-size:10px;cursor:pointer" title="سجل الدفعات">📋</button>
-        <button onclick="deleteMember(${i})" style="padding:4px 8px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="حذف العضو نهائياً">🗑</button>
-        
+        <button onclick="deleteMember(${i})" style="padding:4px 8px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="حذف العضو">🗑</button>
       </div>
     </div>`;
-  }).join('');
+  });
+
+  // الأسهم المدمجة (نصف + نصف = كامل)
+  mergedPairs.forEach(pair => {
+    const { member1: m1, member2: m2 } = pair;
+    const i1 = members.indexOf(m1);
+    const i2 = members.indexOf(m2);
+    rows += `
+    <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:0;padding:12px 16px;border-top:2px solid rgba(184,149,90,.4);font-size:13px;align-items:center;background:rgba(184,149,90,.04)">
+      <div>
+        <div style="margin-bottom:5px">
+          <span style="font-size:11px;background:var(--gold);color:#fff;padding:2px 10px;border-radius:10px;font-weight:700">⭐ سهم كامل مشترك (½ + ½)</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:8px 10px;background:#fff;border-radius:8px;border:1px solid var(--border)">
+          <div style="font-weight:700;color:var(--ink);font-size:13px">👤 ${m1.name} <span style="font-size:10px;color:var(--ink3);font-weight:400">— ${m1.workplace||'—'}</span></div>
+          <div style="font-weight:700;color:var(--ink);font-size:13px">👤 ${m2.name} <span style="font-size:10px;color:var(--ink3);font-weight:400">— ${m2.workplace||'—'}</span></div>
+        </div>
+      </div>
+      <div style="color:var(--ink3);font-size:11px">${m1.phone}<br>${m2.phone}</div>
+      <div>
+        <span style="background:rgba(26,107,74,.1);color:var(--green);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">مدمج</span>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button onclick="openSmartReceiptForMember('${m1.name}',${m1.paidMonths||0})" style="padding:4px 8px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer">📥 ${m1.name.split(' ')[0]}</button>
+        <button onclick="openSmartReceiptForMember('${m2.name}',${m2.paidMonths||0})" style="padding:4px 8px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer">📥 ${m2.name.split(' ')[0]}</button>
+        <button onclick="deleteMember(${i1})" style="padding:4px 8px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="حذف ${m1.name}">🗑₁</button>
+        <button onclick="deleteMember(${i2})" style="padding:4px 8px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer" title="حذف ${m2.name}">🗑₂</button>
+      </div>
+    </div>`;
+  });
+
+  // نصف أسهم لم تُدمج بعد (بانتظار شريك)
+  unmatchedHalves.forEach(m => {
+    const i = members.indexOf(m);
+    const status = m.paymentStatus || 'في الانتظار';
+    const statusColor = 'rgba(184,149,90,.12)';
+    const statusTextColor = 'var(--gold-d)';
+    rows += `
+    <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:0;padding:12px 16px;border-top:1px solid var(--border);font-size:13px;align-items:center;opacity:.85">
+      <div>
+        <div style="font-weight:600">${m.name}</div>
+        <div style="font-size:11px;color:var(--ink3)">${m.workplace||''}</div>
+        <span style="font-size:10px;background:rgba(184,149,90,.1);color:var(--gold-d);padding:2px 8px;border-radius:10px;font-weight:600">½ نصف سهم — بانتظار شريك</span>
+      </div>
+      <div style="color:var(--ink3)">${m.phone}</div>
+      <div><span style="background:${statusColor};color:${statusTextColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${status}</span></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button onclick="openSmartReceiptForMember('${m.name}',${m.paidMonths||0})" style="padding:4px 8px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer">📥 إيصال</button>
+        <button onclick="viewSalaryCert('${m.name}',${i})" style="padding:4px 8px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer">📄 راتب</button>
+        <button onclick="deleteMember(${i})" style="padding:4px 8px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer">🗑</button>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = rows;
 }
 
-// ── فتح إيصال سداد ذكي للعضو المحدد من قائمة الأعضاء ──
+// ── فتح مودال إصدار إيصال سداد للعضو ──
 function openSmartReceiptForMember(memberName, paidMonths) {
   const members = JSON.parse(localStorage.getItem('karama_members') || '[]');
   const member = members.find(m => m.name === memberName);
   const phone = member ? (member.phone || '') : '';
-  const nextMonthNum = paidMonths + 1;
-  const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+
+  // إزالة أي مودال سابق
+  const old = document.getElementById('receipt-issue-modal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'receipt-issue-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:18px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:Tajawal,Tahoma,Arial,sans-serif;direction:rtl;overflow:hidden;max-height:90vh;overflow-y:auto">
+      <div style="background:var(--ink);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#fff">📥 إصدار إيصال سداد</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">${memberName}</div>
+        </div>
+        <button onclick="document.getElementById('receipt-issue-modal').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;line-height:1">✕</button>
+      </div>
+      <div style="padding:20px">
+        <div style="background:rgba(184,149,90,.08);border:1px solid rgba(184,149,90,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--gold-d);margin-bottom:18px">
+          ℹ️ أدخل رقم الشهر المسدد فقط — لن يُحفظ شيء حتى تضغط <strong>تأكيد الإصدار</strong>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--ink2);display:block;margin-bottom:5px">اسم العضو</label>
+            <div style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#f0ede8;color:var(--ink);font-weight:600">${memberName}</div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--ink2);display:block;margin-bottom:5px">رقم الشهر المسدد <span style="color:var(--red)">*</span></label>
+            <input id="modal-month-num" type="number" min="1" max="50" placeholder="مثال: 1" style="width:100%;padding:9px 12px;border:1.5px solid var(--gold);border-radius:8px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;background:#faf8f4;outline:none;box-sizing:border-box" oninput="updateModalReceiptPreview('${memberName}','${phone}')">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--ink2);display:block;margin-bottom:5px">رقم الهاتف</label>
+            <div style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#f0ede8;color:var(--ink3)">${phone}</div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--ink2);display:block;margin-bottom:5px">تاريخ الإصدار</label>
+            <div style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#f0ede8;color:var(--ink)">${new Date().toLocaleDateString('ar-LY',{timeZone:'Africa/Tripoli'})}</div>
+          </div>
+        </div>
+        <!-- معاينة -->
+        <div id="modal-receipt-preview" style="background:var(--warm);border-radius:10px;padding:14px 16px;border:1px solid var(--border);margin-bottom:14px;font-size:13px;display:none">
+          <div style="font-family:'Amiri',Georgia,serif;font-size:16px;font-weight:700;text-align:center;margin-bottom:10px;color:var(--ink)">إيصال سداد رسمي — جمعية الكرامة</div>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><td style="padding:5px 8px;color:var(--ink3);width:50%">اسم العضو:</td><td id="mp-name" style="padding:5px 8px;font-weight:700">—</td></tr>
+            <tr style="background:rgba(184,149,90,.05)"><td style="padding:5px 8px;color:var(--ink3)">الشهر المسدد:</td><td id="mp-month" style="padding:5px 8px;font-weight:700">—</td></tr>
+            <tr><td style="padding:5px 8px;color:var(--ink3)">المبلغ المسدد:</td><td style="padding:5px 8px;font-weight:700;color:var(--green)" id="mp-amount">—</td></tr>
+            <tr style="background:rgba(184,149,90,.05)"><td style="padding:5px 8px;color:var(--ink3)">إجمالي المدفوع:</td><td id="mp-total" style="padding:5px 8px;font-weight:700">—</td></tr>
+            <tr><td style="padding:5px 8px;color:var(--ink3)">عدد الأشهر المسددة:</td><td id="mp-months" style="padding:5px 8px;font-weight:700">—</td></tr>
+            <tr style="background:rgba(184,50,50,.04)"><td style="padding:5px 8px;color:var(--ink3)">المتبقي للإكمال:</td><td id="mp-rem" style="padding:5px 8px;font-weight:700;color:var(--red)">—</td></tr>
+            <tr><td style="padding:5px 8px;color:var(--ink3)">نسبة الإنجاز:</td><td id="mp-pct" style="padding:5px 8px;font-weight:700;color:var(--gold-d)">—</td></tr>
+          </table>
+          <div style="margin-top:8px;background:var(--warm);border-radius:4px;height:7px;overflow:hidden"><div id="mp-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:4px;width:0%;transition:width .4s"></div></div>
+        </div>
+        <div id="modal-receipt-err" style="display:none;font-size:12px;color:var(--red);background:rgba(184,50,50,.06);border:1px solid rgba(184,50,50,.15);border-radius:8px;padding:8px 12px;margin-bottom:12px;text-align:center"></div>
+        <div style="display:flex;gap:10px">
+          <button id="modal-confirm-btn" onclick="confirmModalReceipt('${memberName}','${phone}')" style="flex:1;padding:12px;background:var(--ink3);color:#fff;border:none;border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;cursor:not-allowed;opacity:.5" disabled>
+            ✅ تأكيد الإصدار والحفظ
+          </button>
+          <button onclick="document.getElementById('receipt-issue-modal').remove()" style="padding:12px 18px;background:var(--warm);color:var(--ink2);border:1px solid var(--border);border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;cursor:pointer">
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  // تركيز على حقل رقم الشهر
+  setTimeout(() => { const inp = document.getElementById('modal-month-num'); if(inp) inp.focus(); }, 100);
+}
+
+function updateModalReceiptPreview(memberName, phone) {
+  const rawVal = document.getElementById('modal-month-num').value;
+  const monthNum = rawVal === '' ? null : parseInt(rawVal);
+  const preview = document.getElementById('modal-receipt-preview');
+  const confirmBtn = document.getElementById('modal-confirm-btn');
+  const errEl = document.getElementById('modal-receipt-err');
+
+  if (!monthNum || isNaN(monthNum) || monthNum < 1 || monthNum > 50) {
+    if (preview) preview.style.display = 'none';
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.style.opacity = '.5'; confirmBtn.style.cursor = 'not-allowed'; confirmBtn.style.background = 'var(--ink3)'; }
+    if (errEl && rawVal !== '') { errEl.textContent = '⚠️ أدخل رقماً بين 1 و 50'; errEl.style.display = 'block'; }
+    else if (errEl) errEl.style.display = 'none';
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+
+  const members = JSON.parse(localStorage.getItem('karama_members') || '[]');
+  const member = members.find(m => m.name === memberName);
+  const monthly = member && member.shareType === 'half' ? 500 : 1000;
+  const totalPaid = monthNum * monthly;
+  const remaining = (50 - monthNum) * monthly;
+  const pct = Math.round((monthNum / 50) * 100);
   const now = new Date();
-  const nextMonthName = monthNames[now.getMonth()] + ' ' + now.getFullYear();
-  showAdminTab("payments");
-  setTimeout(() => {
-    // إظهار قسم الإيصال الذكي
-    const section = document.getElementById('smart-receipt-section');
-    if (section) section.style.display = '';
-    document.getElementById("si-name").value = memberName;
-    document.getElementById("si-month-num").value = nextMonthNum;
-    // تاريخ الإصدار يتولد تلقائياً
-    document.getElementById("si-phone").value = phone;
-    calcSmartReceipt();
-    const preview = document.getElementById('smart-receipt-preview');
-    if (preview) preview.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 250);
+  const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const monthLabel = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+
+  document.getElementById('mp-name').textContent = memberName;
+  document.getElementById('mp-month').textContent = monthLabel;
+  document.getElementById('mp-amount').textContent = monthly.toLocaleString('ar-LY') + ' د.ل';
+  document.getElementById('mp-total').textContent = totalPaid.toLocaleString('ar-LY') + ' د.ل (' + monthNum + ' أشهر)';
+  document.getElementById('mp-months').textContent = monthNum + ' من أصل 50 شهراً';
+  document.getElementById('mp-rem').textContent = remaining.toLocaleString('ar-LY') + ' د.ل (' + (50 - monthNum) + ' شهراً)';
+  document.getElementById('mp-pct').textContent = pct + '٪';
+  document.getElementById('mp-bar').style.width = pct + '%';
+  if (preview) preview.style.display = 'block';
+  if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.style.opacity = '1'; confirmBtn.style.cursor = 'pointer'; confirmBtn.style.background = 'var(--green)'; }
+}
+
+function confirmModalReceipt(memberName, phone) {
+  const rawVal = document.getElementById('modal-month-num').value;
+  const monthNum = parseInt(rawVal);
+  if (!monthNum || isNaN(monthNum) || monthNum < 1 || monthNum > 50) return;
+
+  const now = new Date();
+  const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const monthName = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+
+  const members = JSON.parse(localStorage.getItem('karama_members') || '[]');
+  const memberIdx = members.findIndex(m => m.name === memberName);
+  if (memberIdx === -1) { alert('⚠️ لم يتم العثور على العضو'); return; }
+
+  const m = members[memberIdx];
+  const monthly = m.shareType === 'half' ? 500 : 1000;
+
+  m.paidMonths = monthNum;
+  m.paymentStatus = 'مؤكد';
+  m.payments = m.payments || [];
+  if (!m.payments.find(p => p.month === monthName)) {
+    m.payments.push({ month: monthName, amount: monthly, date: now.toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'}) });
+  }
+  localStorage.setItem('karama_members', JSON.stringify(members));
+
+  // حفظ في الأرشيف فقط هنا
+  const archiveReceipts = JSON.parse(localStorage.getItem('karama_payments_archive') || '[]');
+  archiveReceipts.push({
+    name: memberName, phone, monthName, monthNum, amount: monthly,
+    date: now.toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'}),
+    time: now.toLocaleString('ar-LY', {timeZone:'Africa/Tripoli'}),
+    receiptNum: 'KR-' + now.getFullYear() + '-' + String(monthNum).padStart(3,'0')
+  });
+  localStorage.setItem('karama_payments_archive', JSON.stringify(archiveReceipts));
+
+  renderAdminMembers();
+  renderLateAlerts();
+  if (typeof renderPaymentsArchive === 'function') renderPaymentsArchive();
+
+  // تحديث لوحة العضو إذا كانت مفتوحة
+  window._currentMember = m;
+  if (document.getElementById('screen-member') &&
+      document.getElementById('screen-member').classList.contains('active')) {
+    loadMemberDashboard(m);
+  }
+
+  document.getElementById('receipt-issue-modal').remove();
+
+  // إشعار نجاح صغير
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--green);color:#fff;border-radius:12px;padding:12px 24px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.2)';
+  banner.textContent = '✅ تم حفظ إيصال ' + memberName + ' — ' + monthName;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 3000);
 }
 
 function getCurrentMonthAr() {
@@ -2713,43 +3065,103 @@ function showMemberPayments(name, idx) {
 
 // ── Smart Receipt JS ──
 function calcSmartReceipt() {
-  const monthNum = parseInt(document.getElementById('si-month-num').value) || 0;
+  const rawVal = document.getElementById('si-month-num').value;
+  const monthNum = rawVal === '' ? null : parseInt(rawVal);
   const name = document.getElementById('si-name').value.trim();
   const MONTHLY = 1000;
   const TOTAL = 50;
-  const totalPaid = monthNum * MONTHLY;
-  const remaining = (TOTAL - monthNum) * MONTHLY;
-  const pct = Math.round((monthNum / TOTAL) * 100);
   const now = new Date();
   const fullDate = now.toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli', year:'numeric', month:'long', day:'numeric'});
-  const receiptNum = 'KR-' + now.getFullYear() + '-' + String(monthNum).padStart(3,'0');
 
-  // عرض التاريخ في حقل تاريخ الإصدار
+  // عرض التاريخ في حقل تاريخ الإصدار دائماً
   const issueDateEl = document.getElementById('si-issue-date');
   if (issueDateEl) issueDateEl.textContent = fullDate;
 
-  // الشهر المعروض في الإيصال = اسم الشهر + السنة الحاليين
+  // إذا لم يُدخل رقم الشهر بعد — أظهر المعاينة فارغة
+  if (monthNum === null || isNaN(monthNum) || monthNum <= 0) {
+    document.getElementById('si-r-name').textContent = name || '—';
+    document.getElementById('si-r-month').textContent = '—';
+    document.getElementById('si-r-total').textContent = '—';
+    document.getElementById('si-r-months').textContent = '—';
+    document.getElementById('si-r-rem').textContent = '—';
+    document.getElementById('si-r-pct').textContent = '—';
+    document.getElementById('si-prog-bar').style.width = '0%';
+    document.getElementById('si-r-num').textContent = '—';
+    document.getElementById('si-r-date').textContent = fullDate;
+    return;
+  }
+
+  const totalPaid = monthNum * MONTHLY;
+  const remaining = (TOTAL - monthNum) * MONTHLY;
+  const pct = Math.round((monthNum / TOTAL) * 100);
+  const receiptNum = 'KR-' + now.getFullYear() + '-' + String(monthNum).padStart(3,'0');
   const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
   const autoMonthName = monthNames[now.getMonth()] + ' ' + now.getFullYear();
 
   document.getElementById('si-r-name').textContent = name || '—';
   document.getElementById('si-r-month').textContent = autoMonthName;
-  document.getElementById('si-r-total').textContent = monthNum > 0 ? totalPaid.toLocaleString('ar') + ' د.ل (' + monthNum + ' أشهر)' : '—';
-  document.getElementById('si-r-months').textContent = monthNum > 0 ? monthNum + ' من أصل 50 شهراً' : '—';
-  document.getElementById('si-r-rem').textContent = monthNum > 0 ? remaining.toLocaleString('ar') + ' د.ل (' + (TOTAL - monthNum) + ' شهراً)' : '—';
-  document.getElementById('si-r-pct').textContent = monthNum > 0 ? pct + '٪' : '—';
+  document.getElementById('si-r-total').textContent = totalPaid.toLocaleString('ar') + ' د.ل (' + monthNum + ' أشهر)';
+  document.getElementById('si-r-months').textContent = monthNum + ' من أصل 50 شهراً';
+  document.getElementById('si-r-rem').textContent = remaining.toLocaleString('ar') + ' د.ل (' + (TOTAL - monthNum) + ' شهراً)';
+  document.getElementById('si-r-pct').textContent = pct + '٪';
   document.getElementById('si-prog-bar').style.width = pct + '%';
-  document.getElementById('si-r-num').textContent = monthNum > 0 ? receiptNum : '—';
+  document.getElementById('si-r-num').textContent = receiptNum;
   document.getElementById('si-r-date').textContent = fullDate;
 }
 function issueSmartReceipt() {
   const name = document.getElementById('si-name').value.trim();
-  const monthNum = parseInt(document.getElementById('si-month-num').value);
+  const rawVal = document.getElementById('si-month-num').value;
+  const monthNum = rawVal === '' ? NaN : parseInt(rawVal);
   const phone = document.getElementById('si-phone').value.trim();
   const now = new Date();
   const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
   const monthName = monthNames[now.getMonth()] + ' ' + now.getFullYear();
-  if (!name || !monthNum) { alert('يرجى تعبئة اسم العضو ورقم الشهر أولاً'); return; }
+
+  if (!name) { alert('⚠️ يرجى إدخال اسم العضو أولاً'); return; }
+  if (!monthNum || isNaN(monthNum) || monthNum < 1 || monthNum > 50) {
+    alert('⚠️ يرجى إدخال رقم الشهر المسدد (1 - 50) أولاً');
+    document.getElementById('si-month-num').focus();
+    return;
+  }
+
+  // ══ نافذة تأكيد صريحة قبل الحفظ ══
+  const confirmModal = document.createElement('div');
+  confirmModal.id = 'issue-confirm-modal';
+  confirmModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  confirmModal.innerHTML = `
+    <div style="background:#fff;border-radius:18px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:Tajawal,Tahoma,Arial,sans-serif;direction:rtl;overflow:hidden">
+      <div style="background:var(--ink);padding:20px 24px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:28px">📋</span>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#fff">تأكيد إصدار الإيصال</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">هذه العملية ستُحدّث سجل العضو فعلياً</div>
+        </div>
+      </div>
+      <div style="padding:22px 24px">
+        <div style="background:var(--warm);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;line-height:2">
+          <div>👤 <strong>العضو:</strong> ${name}</div>
+          <div>📅 <strong>الشهر:</strong> ${monthName}</div>
+          <div>🔢 <strong>رقم الشهر المسدد:</strong> ${monthNum} من أصل 50</div>
+          <div>💰 <strong>المبلغ:</strong> 1,000 د.ل</div>
+        </div>
+        <div style="background:rgba(184,50,50,.06);border:1px solid rgba(184,50,50,.15);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:18px">
+          ⚠️ بعد الحفظ ستظهر هذه الدفعة في لوحة العضو فوراً — تأكد من صحة البيانات
+        </div>
+        <div style="display:flex;gap:10px">
+          <button onclick="confirmIssueReceipt('${name}','${phone}','${monthName}',${monthNum})" style="flex:1;padding:12px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;cursor:pointer">
+            ✅ نعم، أصدر وأحفظ
+          </button>
+          <button onclick="document.getElementById('issue-confirm-modal').remove()" style="flex:1;padding:12px;background:var(--warm);color:var(--ink2);border:1px solid var(--border);border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;cursor:pointer">
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(confirmModal);
+}
+
+function confirmIssueReceipt(name, phone, monthName, monthNum) {
+  document.getElementById('issue-confirm-modal').remove();
 
   // حفظ الدفعة في سجل العضو
   const members = JSON.parse(localStorage.getItem('karama_members') || '[]');
@@ -2759,7 +3171,6 @@ function issueSmartReceipt() {
     m.paidMonths = monthNum;
     m.paymentStatus = 'مؤكد';
     m.payments = m.payments || [];
-    // تجنب التكرار
     if (!m.payments.find(p => p.month === monthName)) {
       m.payments.push({
         month: monthName,
@@ -2769,10 +3180,8 @@ function issueSmartReceipt() {
     }
     localStorage.setItem('karama_members', JSON.stringify(members));
     renderAdminMembers();
-
-    // تحديث لوحة العضو فوراً وتحديث _currentMember
     window._currentMember = m;
-    if (document.getElementById('screen-member') && 
+    if (document.getElementById('screen-member') &&
         document.getElementById('screen-member').classList.contains('active')) {
       loadMemberDashboard(m);
     }
@@ -2781,10 +3190,7 @@ function issueSmartReceipt() {
   // حفظ نسخة في أرشيف السداد
   const archiveReceipts = JSON.parse(localStorage.getItem('karama_payments_archive') || '[]');
   archiveReceipts.push({
-    name: name,
-    phone: phone,
-    monthName: monthName,
-    monthNum: monthNum,
+    name, phone, monthName, monthNum,
     amount: 1000,
     date: new Date().toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'}),
     time: new Date().toLocaleString('ar-LY', {timeZone:'Africa/Tripoli'}),
@@ -2793,19 +3199,20 @@ function issueSmartReceipt() {
   localStorage.setItem('karama_payments_archive', JSON.stringify(archiveReceipts));
   renderPaymentsArchive();
 
-  // تأكيد بصري فقط — بدون فتح نافذة الإيصال
+  // رسالة نجاح ثم مسح الحقول
   const btn = document.querySelector('[onclick="issueSmartReceipt()"]');
   if (btn) {
-    const orig = btn.textContent;
-    btn.textContent = '✅ تم الحفظ بنجاح';
-    btn.style.background = 'var(--gold)';
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ تم الحفظ بنجاح';
+    btn.style.background = 'var(--green)';
     setTimeout(() => {
-      btn.textContent = orig;
+      btn.innerHTML = orig;
       btn.style.background = '';
-      // إخفاء الإيصال وتفريغ الحقول بعد الحفظ
       const section = document.getElementById('smart-receipt-section');
       if (section) section.style.display = 'none';
-      ['si-name','si-month-num','si-phone'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+      ['si-name','si-month-num','si-phone'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
       calcSmartReceipt();
     }, 2000);
   }
@@ -2827,6 +3234,7 @@ function renderPendingReceipts() {
   }
   container.innerHTML = pending.map((r, i) => {
     const isConfirmed = r.status === 'confirmed';
+    const deleteBtn = `<button onclick="adminDeleteReceipt(${i})" style="padding:5px 10px;background:#fff;color:#b83232;border:1.5px solid #b83232;border-radius:6px;font-size:13px;font-family:'Tajawal',Tahoma,Arial,sans-serif;cursor:pointer;line-height:1" title="حذف الإيصال">🗑</button>`;
     return `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-top:1px solid var(--border);font-size:13px;gap:10px;flex-wrap:wrap">
       <div>
@@ -2835,9 +3243,10 @@ function renderPendingReceipts() {
       </div>
       <div style="display:flex;gap:6px;align-items:center">
         ${isConfirmed
-          ? '<span style="color:var(--green);font-size:12px;font-weight:700">✅ مؤكد</span>'
+          ? `<span style="color:var(--green);font-size:12px;font-weight:700">✅ مؤكد</span> ${deleteBtn}`
           : `<button onclick="adminConfirmReceipt(${i})" style="padding:5px 14px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:'Tajawal',Tahoma,Arial,sans-serif;cursor:pointer">✓ تأكيد السداد</button>
-             <button onclick="adminRejectReceipt(${i})" style="padding:5px 12px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:'Tajawal',Tahoma,Arial,sans-serif;cursor:pointer">✕ رفض</button>`
+             <button onclick="adminRejectReceipt(${i})" style="padding:5px 12px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:'Tajawal',Tahoma,Arial,sans-serif;cursor:pointer">✕ رفض</button>
+             ${deleteBtn}`
         }
       </div>
     </div>`;
@@ -2942,6 +3351,13 @@ function adminConfirmReceipt(idx) {
   alert('✅ تم تأكيد السداد. يمكنك الآن إصدار الإيصال الذكي من تبويب "السداد" > الإيصال الذكي.');
 }
 function adminRejectReceipt(idx) {
+  const pending = JSON.parse(localStorage.getItem('karama_pending_receipts') || '[]');
+  pending.splice(idx, 1);
+  localStorage.setItem('karama_pending_receipts', JSON.stringify(pending));
+  renderPendingReceipts();
+}
+function adminDeleteReceipt(idx) {
+  if (!confirm('هل أنت متأكد من حذف هذا الإيصال نهائياً؟')) return;
   const pending = JSON.parse(localStorage.getItem('karama_pending_receipts') || '[]');
   pending.splice(idx, 1);
   localStorage.setItem('karama_pending_receipts', JSON.stringify(pending));
@@ -3159,12 +3575,32 @@ function renderLateAlerts() {
   const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
   const now = new Date();
   const currentMonth = monthNames[now.getMonth()] + ' ' + now.getFullYear();
-  // العضو المتأخر: حالة سداده ليست "مؤكد" أو لم يسدد الشهر الحالي
+  // العضو المتأخر: فقط إذا مر شهر كامل على انضمامه وليس لديه دفعة للشهر الحالي
   const late = members.filter(m => {
+    // إذا كان يحمل تصنيف "متأخر" صريح
     if (m.paymentStatus === 'متأخر') return true;
-    // إذا كانت آخر دفعة مسجلة لا تتضمن الشهر الحالي
+    // تجاهل الأعضاء الذين لم يمر عليهم بعد شهر من تاريخ الانضمام
+    if (m.joinDate) {
+      const parts = m.joinDate.split('/');
+      // تاريخ الانضمام بصيغة د/ش/س أو ش/د/س
+      let joinDateObj = null;
+      if (parts.length === 3) {
+        // نحاول التحليل كـ dd/mm/yyyy أو mm/dd/yyyy
+        const d1 = new Date(parts[2], parts[1]-1, parts[0]);
+        const d2 = new Date(parts[2], parts[0]-1, parts[1]);
+        joinDateObj = isNaN(d1) ? d2 : d1;
+      }
+      if (joinDateObj && !isNaN(joinDateObj)) {
+        const diffMs = now - joinDateObj;
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        if (diffDays < 30) return false; // أقل من شهر — ليس متأخراً بعد
+      }
+    }
+    // إذا لم تكن هناك أي دفعة مسجلة (وقد مر شهر)
     const payments = m.payments || [];
-    return payments.length === 0 || !payments.find(p => p.month === currentMonth);
+    if (payments.length === 0) return true;
+    // إذا لم يسدد الشهر الحالي
+    return !payments.find(p => p.month === currentMonth);
   });
   const head = document.getElementById('alert-panel-head');
   if (late.length === 0) {
@@ -3197,18 +3633,30 @@ function renderPaymentsArchive() {
   }
   // عرض الأحدث أولاً
   const sorted = [...archive].reverse();
-  container.innerHTML = sorted.map((r, i) => `
-    <div onclick="openArchiveReceiptModal(${archive.length - 1 - i})" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border);font-size:13px;flex-wrap:wrap;gap:8px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(184,149,90,.05)'" onmouseout="this.style.background=''">
-      <div>
+  container.innerHTML = sorted.map((r, i) => {
+    const realIdx = archive.length - 1 - i;
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border);font-size:13px;flex-wrap:wrap;gap:8px">
+      <div onclick="openArchiveReceiptModal(${realIdx})" style="flex:1;cursor:pointer" onmouseover="this.parentElement.style.background='rgba(184,149,90,.05)'" onmouseout="this.parentElement.style.background=''">
         <div style="font-weight:700;color:var(--ink)">${r.name}</div>
         <div style="font-size:12px;color:var(--ink3)">📅 ${r.monthName} — رقم الإيصال: ${r.receiptNum}</div>
         <div style="font-size:11px;color:var(--ink3)">🕐 ${r.time}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="background:rgba(26,107,74,.1);color:var(--green);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">✓ مؤكد — ${r.amount ? r.amount.toLocaleString() : '1,000'} د.ل</span>
-        <span style="font-size:11px;color:var(--ink3);background:var(--warm);border:1px solid var(--border);padding:3px 8px;border-radius:6px">👁 تفاصيل</span>
+        <span onclick="openArchiveReceiptModal(${realIdx})" style="font-size:11px;color:var(--ink3);background:var(--warm);border:1px solid var(--border);padding:3px 8px;border-radius:6px;cursor:pointer">👁 تفاصيل</span>
+        <button onclick="deleteArchiveReceipt(${realIdx})" style="padding:5px 10px;background:#fff;color:#b83232;border:1.5px solid #b83232;border-radius:6px;font-size:13px;font-family:'Tajawal',Tahoma,Arial,sans-serif;cursor:pointer;line-height:1" title="حذف الإيصال">🗑</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+function deleteArchiveReceipt(idx) {
+  if (!confirm('هل أنت متأكد من حذف هذا الإيصال من الأرشيف نهائياً؟')) return;
+  const archive = JSON.parse(localStorage.getItem('karama_payments_archive') || '[]');
+  archive.splice(idx, 1);
+  localStorage.setItem('karama_payments_archive', JSON.stringify(archive));
+  renderPaymentsArchive();
 }
 
 function openArchiveReceiptModal(idx) {
@@ -3317,6 +3765,69 @@ function updateWhatsappBtn() {
   if (num) {
     btn.onclick = function() { window.open('https://wa.me/' + num + '?text=' + encodeURIComponent('السلام عليكم، أود التواصل مع إدارة جمعية الكرامة'), '_blank'); };
   }
+}
+
+
+// ══════════════════════════════════════════════════
+// نوع السهم — واجهة الاختيار
+// ══════════════════════════════════════════════════
+function selectShareType(type) {
+  const fullLbl = document.getElementById('share-full-lbl');
+  const halfLbl = document.getElementById('share-half-lbl');
+  const fullChk = document.getElementById('share-full-check');
+  const halfChk = document.getElementById('share-half-check');
+  const fullRad = document.getElementById('share-full');
+  const halfRad = document.getElementById('share-half');
+  const notice  = document.getElementById('half-share-notice');
+  if (type === 'full') {
+    fullRad.checked = true;
+    fullLbl.style.borderColor = 'var(--gold)';
+    fullLbl.style.background  = 'rgba(184,149,90,.08)';
+    halfLbl.style.borderColor = 'var(--border)';
+    halfLbl.style.background  = '#faf8f4';
+    fullChk.style.color = 'var(--green)';
+    halfChk.style.color = 'transparent';
+    if (notice) notice.style.display = 'none';
+  } else {
+    halfRad.checked = true;
+    halfLbl.style.borderColor = 'var(--gold)';
+    halfLbl.style.background  = 'rgba(184,149,90,.08)';
+    fullLbl.style.borderColor = 'var(--border)';
+    fullLbl.style.background  = '#faf8f4';
+    halfChk.style.color = 'var(--green)';
+    fullChk.style.color = 'transparent';
+    if (notice) notice.style.display = 'block';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// دمج الأنصبة — حساب الأسهم المدمجة
+// ══════════════════════════════════════════════════
+function getMergedShares(members) {
+  // استخرج أصحاب نصف السهم الذين لم يُدمجوا بعد
+  const halfMembers = members.filter(m => m.shareType === 'half' && !m.mergedWith);
+  const mergedPairs = [];
+  const usedPhones = new Set();
+
+  for (let i = 0; i < halfMembers.length; i++) {
+    if (usedPhones.has(halfMembers[i].phone)) continue;
+    for (let j = i + 1; j < halfMembers.length; j++) {
+      if (usedPhones.has(halfMembers[j].phone)) continue;
+      // جمع الاثنين في سهم واحد
+      mergedPairs.push({ member1: halfMembers[i], member2: halfMembers[j] });
+      usedPhones.add(halfMembers[i].phone);
+      usedPhones.add(halfMembers[j].phone);
+      break;
+    }
+  }
+
+  // الأنصاف غير المدموجة بعد
+  const unmatchedHalves = halfMembers.filter(m => !usedPhones.has(m.phone));
+
+  // الأسهم الكاملة
+  const fullShares = members.filter(m => m.shareType !== 'half');
+
+  return { fullShares, mergedPairs, unmatchedHalves };
 }
 
 function resetMembershipCounter() {
