@@ -1,14 +1,13 @@
 {
-  "name": "جمعية الكرامة للادخار التعاوني",
+  "name": "جمعية الكرامة",
   "short_name": "الكرامة",
-  "description": "جمعية ادخار تعاونية مخصصة لمعلمات التعليم في ليبيا",
-  "start_url": "/karama/",
+  "description": "جمعية الكرامة للادخار التعاوني",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0d0b09",
+  "background_color": "#14110e",
   "theme_color": "#b8955a",
-  "orientation": "portrait",
-  "lang": "ar",
   "dir": "rtl",
+  "lang": "ar",
   "icons": [
     {
       "src": "icon-192.png",
