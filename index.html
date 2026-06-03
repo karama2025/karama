@@ -1402,6 +1402,41 @@ body{font-family:'Tajawal',Tahoma,'Arial Unicode MS',Arial,sans-serif;background
       </div>
 
 
+
+      <!-- ── قسم: UltraMsg ── -->
+      <div style="background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px">
+        <div style="background:#e8f8f0;padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">📲</span>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink)">UltraMsg — إرسال الإيصالات عبر واتساب</div>
+            <div style="font-size:11px;color:var(--ink3);margin-top:1px">ربط واتساب العادي لإرسال الإيصالات تلقائياً</div>
+          </div>
+        </div>
+        <div style="padding:20px">
+          <div style="font-size:13px;color:var(--ink3);background:rgba(30,190,93,.07);border:1px solid rgba(30,190,93,.2);border-radius:8px;padding:12px;margin-bottom:16px;line-height:1.9">
+            📌 <strong>بياناتك من UltraMsg:</strong><br>
+            Instance ID و Token موجودان في صفحة جهازك على <strong>ultramsg.com</strong>
+          </div>
+          <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">Instance ID</label>
+          <div style="margin-bottom:12px">
+            <input id="settings-ultramsg-instance" type="text" placeholder="مثال: instance179128" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:13px;background:#faf8f4;outline:none;box-sizing:border-box;direction:ltr;text-align:left">
+          </div>
+          <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">Token</label>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <input id="settings-ultramsg-token" type="text" placeholder="مثال: 0emv01ldba43xyy9" style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:13px;background:#faf8f4;outline:none;box-sizing:border-box;direction:ltr;text-align:left">
+            <button onclick="saveUltraMsg()" style="padding:11px 20px;background:#1ebe5d;color:#fff;border:none;border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">💾 حفظ</button>
+          </div>
+          <div id="ultramsg-save-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;font-weight:600"></div>
+          <div style="padding:12px 16px;background:var(--warm);border-radius:10px;border:1px solid var(--border);margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:4px">الإعدادات الحالية</div>
+            <div style="font-size:12px;color:var(--ink);direction:ltr;text-align:left" id="current-ultramsg-display">— غير مضبوط —</div>
+          </div>
+          <button onclick="testUltraMsg()" style="width:100%;padding:11px;background:#f0faf5;color:#128c3e;border:1.5px solid #1ebe5d;border-radius:10px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;cursor:pointer">
+            🔗 اختبار الاتصال بـ UltraMsg
+          </button>
+        </div>
+      </div>
+
       <div style="background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px">
         <div style="background:var(--warm);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
           <span style="font-size:20px">🔢</span>
@@ -3124,6 +3159,31 @@ function confirmModalReceipt(memberName, phone) {
   };
   triggerMakeReceiptWebhook(receiptPayload);
 
+  // ══ إرسال عبر UltraMsg مباشرة ══
+  if (phone) {
+    const waMsg =
+      `🧾 *إيصال سداد رسمي — جمعية الكرامة*
+
+` +
+      `👤 العضو: ${memberName}
+` +
+      `📅 الشهر: ${monthName}
+` +
+      `🔢 رقم الشهر: ${monthNum} من أصل 50
+` +
+      `💰 المبلغ المسدد: ${monthly.toLocaleString()} د.ل
+` +
+      `💵 إجمالي المدفوع: ${(monthNum * monthly).toLocaleString()} د.ل
+` +
+      `📋 رقم الإيصال: KR-${now.getFullYear()}-${String(monthNum).padStart(3,'0')}
+` +
+      `📆 تاريخ الإصدار: ${now.toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'})}
+
+` +
+      `✅ تم تسجيل سدادك بنجاح — شكراً لك`;
+    sendReceiptViaUltraMsg(phone, waMsg);
+  }
+
   // إشعار نجاح صغير
   const banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--green);color:#fff;border-radius:12px;padding:12px 24px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.2)';
@@ -3494,6 +3554,31 @@ function confirmIssueReceipt(name, phone, monthName, monthNum) {
   };
   triggerMakeReceiptWebhook(receiptPayload);
 
+  // ══ إرسال عبر UltraMsg مباشرة ══
+  if (phone) {
+    const waMsg2 =
+      `🧾 *إيصال سداد رسمي — جمعية الكرامة*
+
+` +
+      `👤 العضو: ${name}
+` +
+      `📅 الشهر: ${monthName}
+` +
+      `🔢 رقم الشهر: ${monthNum} من أصل 50
+` +
+      `💰 المبلغ المسدد: 1,000 د.ل
+` +
+      `💵 إجمالي المدفوع: ${(monthNum * 1000).toLocaleString()} د.ل
+` +
+      `📋 رقم الإيصال: KR-${new Date().getFullYear()}-${String(monthNum).padStart(3,'0')}
+` +
+      `📆 تاريخ الإصدار: ${new Date().toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'})}
+
+` +
+      `✅ تم تسجيل سدادك بنجاح — شكراً لك`;
+    sendReceiptViaUltraMsg(phone, waMsg2);
+  }
+
   // رسالة نجاح ثم مسح الحقول
   const btn = document.querySelector('[onclick="issueSmartReceipt()"]');
   if (btn) {
@@ -3817,6 +3902,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (makeUrlDisplay) makeUrlDisplay.textContent = savedMakeUrl || '— غير مضبوط —';
   const makeUrlInput = document.getElementById('settings-make-url');
   if (makeUrlInput) makeUrlInput.value = savedMakeUrl;
+  // تحميل إعدادات UltraMsg
+  loadUltraMsgSettings();
 });
 
 function checkRegPhone() {
@@ -4339,6 +4426,98 @@ async function testMakeWebhook() {
 }
 
 // ── إرسال إيصال سداد عبر Make.com Webhook ──
+
+// ── UltraMsg: حفظ الإعدادات ──
+function saveUltraMsg() {
+  const instance = document.getElementById('settings-ultramsg-instance').value.trim();
+  const token = document.getElementById('settings-ultramsg-token').value.trim();
+  const msg = document.getElementById('ultramsg-save-msg');
+  if (!instance || !token) {
+    msg.style.display = 'block';
+    msg.style.background = 'rgba(184,50,50,.08)';
+    msg.style.color = 'var(--red)';
+    msg.style.border = '1px solid rgba(184,50,50,.2)';
+    msg.textContent = '⚠️ يرجى إدخال Instance ID و Token';
+    return;
+  }
+  localStorage.setItem('karama_ultramsg_instance', instance);
+  localStorage.setItem('karama_ultramsg_token', token);
+  msg.style.display = 'block';
+  msg.style.background = 'rgba(26,107,74,.08)';
+  msg.style.color = 'var(--green)';
+  msg.style.border = '1px solid rgba(26,107,74,.2)';
+  msg.textContent = '✅ تم حفظ إعدادات UltraMsg بنجاح';
+  loadUltraMsgSettings();
+  setTimeout(() => { msg.style.display = 'none'; }, 3000);
+}
+
+function loadUltraMsgSettings() {
+  const instance = localStorage.getItem('karama_ultramsg_instance') || '';
+  const token = localStorage.getItem('karama_ultramsg_token') || '';
+  const display = document.getElementById('current-ultramsg-display');
+  const inputI = document.getElementById('settings-ultramsg-instance');
+  const inputT = document.getElementById('settings-ultramsg-token');
+  if (instance && token) {
+    if (display) display.textContent = 'Instance: ' + instance + ' | Token: ' + token.substring(0,6) + '...';
+    if (inputI) inputI.value = instance;
+    if (inputT) inputT.value = token;
+  } else {
+    if (display) display.textContent = '— غير مضبوط —';
+  }
+}
+
+async function testUltraMsg() {
+  const instance = localStorage.getItem('karama_ultramsg_instance') || '';
+  const token = localStorage.getItem('karama_ultramsg_token') || '';
+  if (!instance || !token) {
+    alert('⚠️ يرجى حفظ Instance ID و Token أولاً');
+    return;
+  }
+  const btn = event.target;
+  btn.textContent = 'جارٍ الاختبار...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://api.ultramsg.com/' + instance + '/messages/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ token, to: '218000000000', body: 'اختبار اتصال — جمعية الكرامة ✅' })
+    });
+    const data = await res.json();
+    if (data.sent === 'true' || data.id) {
+      btn.textContent = '✅ الاتصال ناجح';
+      btn.style.background = '#e8f8f0';
+    } else {
+      btn.textContent = '⚠️ تحقق من البيانات';
+      btn.style.background = '#fff3f3';
+    }
+  } catch(e) {
+    btn.textContent = '❌ فشل الاتصال';
+    btn.style.background = '#fff3f3';
+  }
+  setTimeout(() => {
+    btn.textContent = '🔗 اختبار الاتصال بـ UltraMsg';
+    btn.style.background = '#f0faf5';
+    btn.disabled = false;
+  }, 3000);
+}
+
+// ── UltraMsg: إرسال إيصال ──
+async function sendReceiptViaUltraMsg(phone, message) {
+  const instance = localStorage.getItem('karama_ultramsg_instance') || '';
+  const token = localStorage.getItem('karama_ultramsg_token') || '';
+  if (!instance || !token || !phone) return;
+  const cleanPhone = phone.replace(/^0/, '218').replace(/\D/g, '');
+  try {
+    await fetch('https://api.ultramsg.com/' + instance + '/messages/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ token, to: cleanPhone, body: message })
+    });
+  } catch(e) {
+    console.warn('UltraMsg error:', e);
+  }
+}
+
 async function triggerMakeReceiptWebhook(payload) {
   const url = localStorage.getItem('karama_make_webhook') || '';
   if (!url) return; // لا webhook محفوظ — تجاهل صامت
