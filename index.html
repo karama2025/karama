@@ -3109,12 +3109,27 @@ function confirmModalReceipt(memberName, phone) {
 
   document.getElementById('receipt-issue-modal').remove();
 
+  // ══ إرسال Webhook إلى Make.com ══
+  const receiptPayload = {
+    memberName: memberName,
+    memberPhone: phone,
+    monthName,
+    monthNum,
+    amount: monthly.toLocaleString('ar') + ' د.ل',
+    totalPaid: (monthNum * monthly).toLocaleString('ar') + ' د.ل',
+    remaining: ((50 - monthNum) * monthly).toLocaleString('ar') + ' د.ل',
+    receiptNum: 'KR-' + now.getFullYear() + '-' + String(monthNum).padStart(3,'0'),
+    issueDate: now.toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'}),
+    message: `✅ تم تسجيل سداد ${memberName} للشهر رقم ${monthNum} (${monthName}) بمبلغ ${monthly.toLocaleString('ar')} د.ل — جمعية الكرامة`
+  };
+  triggerMakeReceiptWebhook(receiptPayload);
+
   // إشعار نجاح صغير
   const banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--green);color:#fff;border-radius:12px;padding:12px 24px;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:14px;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.2)';
-  banner.textContent = '✅ تم حفظ إيصال ' + memberName + ' — ' + monthName;
+  banner.textContent = '✅ تم حفظ إيصال ' + memberName + ' — ' + monthName + (phone ? ' — 📲 جارٍ الإرسال للعضو عبر واتساب...' : '');
   document.body.appendChild(banner);
-  setTimeout(() => banner.remove(), 3000);
+  setTimeout(() => banner.remove(), 3500);
 }
 
 function getCurrentMonthAr() {
@@ -3479,30 +3494,11 @@ function confirmIssueReceipt(name, phone, monthName, monthNum) {
   };
   triggerMakeReceiptWebhook(receiptPayload);
 
-  // ══ فتح واتساب مباشرة برسالة الإيصال ══
-  if (phone) {
-    const cleanPhone = phone.replace(/^0/, '218').replace(/\D/g, '');
-    const waMessage = encodeURIComponent(
-      `🧾 *إيصال سداد رسمي — جمعية الكرامة*\n\n` +
-      `👤 العضو: ${name}\n` +
-      `📅 الشهر: ${monthName}\n` +
-      `🔢 رقم الشهر: ${monthNum} من أصل 50\n` +
-      `💰 المبلغ المسدد: 1,000 د.ل\n` +
-      `💵 إجمالي المدفوع: ${(monthNum * 1000).toLocaleString()} د.ل\n` +
-      `📋 رقم الإيصال: KR-${new Date().getFullYear()}-${String(monthNum).padStart(3,'0')}\n` +
-      `📆 تاريخ الإصدار: ${new Date().toLocaleDateString('ar-LY', {timeZone:'Africa/Tripoli'})}\n\n` +
-      `✅ تم تسجيل سدادك بنجاح — شكراً لك`
-    );
-    setTimeout(() => {
-      window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank');
-    }, 500);
-  }
-
   // رسالة نجاح ثم مسح الحقول
   const btn = document.querySelector('[onclick="issueSmartReceipt()"]');
   if (btn) {
     const orig = btn.innerHTML;
-    btn.innerHTML = '✅ تم الحفظ — جارٍ فتح واتساب...';
+    btn.innerHTML = '✅ تم الحفظ — 📲 جارٍ الإرسال للعضو...';
     btn.style.background = 'var(--green)';
     setTimeout(() => {
       btn.innerHTML = orig;
