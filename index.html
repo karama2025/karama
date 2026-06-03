@@ -1019,6 +1019,9 @@ body{font-family:'Tajawal',Tahoma,'Arial Unicode MS',Arial,sans-serif;background
      SCREEN 3: REGISTRATION REQUEST
 ═══════════════════════════════════════════ -->
 <div id="screen-register" class="screen">
+<!-- حقول وهمية لمنع autofill -->
+<input type="text" name="fake_name" style="display:none" tabindex="-1" aria-hidden="true">
+<input type="tel" name="fake_phone" style="display:none" tabindex="-1" aria-hidden="true">
   <div style="max-width:480px;margin:0 auto">
     <button onclick="showScreen('home')" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;font-family:'Tajawal',Tahoma,Arial,sans-serif;display:flex;align-items:center;gap:6px;padding:0;margin-bottom:24px">← العودة</button>
     <div style="background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden">
@@ -1033,17 +1036,17 @@ body{font-family:'Tajawal',Tahoma,'Arial Unicode MS',Arial,sans-serif;background
         </div>
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">الاسم الكامل</label>
-        <input id="reg-name" type="text" placeholder="الاسم الرباعي" autocomplete="off" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
+        <input id="reg-name" type="text" placeholder="الاسم الرباعي" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">رقم الهاتف</label>
-        <input id="reg-phone" type="tel" placeholder="09XXXXXXXX" maxlength="10" autocomplete="off" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:6px;box-sizing:border-box" oninput="checkRegPhone()">
+        <input id="reg-phone" type="tel" placeholder="09XXXXXXXX" maxlength="10" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:6px;box-sizing:border-box" oninput="checkRegPhone()">
         <div id="reg-phone-hint" style="display:none;font-size:12px;color:var(--red);margin-bottom:12px;padding:6px 10px;background:rgba(184,50,50,.06);border-radius:6px"></div>
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">جهة العمل</label>
-        <input id="reg-workplace" type="text" placeholder="مثال: مدرسة الشهيد باحي" autocomplete="off" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
+        <input id="reg-workplace" type="text" placeholder="مثال: مدرسة الشهيد باحي" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:6px">المسمى الوظيفي</label>
-        <input id="reg-job" type="text" placeholder="معلمة / موظفة ..." autocomplete="off" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
+        <input id="reg-job" type="text" placeholder="معلمة / موظفة ..." autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',Tahoma,Arial,sans-serif;font-size:14px;background:#faf8f4;outline:none;margin-bottom:16px;box-sizing:border-box">
 
         <label style="font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bottom:8px">نوع السهم المطلوب</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px" id="share-type-group">
